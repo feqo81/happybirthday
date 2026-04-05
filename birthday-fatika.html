@@ -1,0 +1,554 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Selamat Ulang Tahun, Fatika 🌹</title>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,600;1,300;1,600&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+
+<style>
+:root {
+  --gold: #e8b84b;
+  --gold-light: #f5d78e;
+  --gold-dim: rgba(232,184,75,0.15);
+  --bg: #080b12;
+  --card-bg: #0e1420;
+  --text: #f0ede8;
+  --text-muted: rgba(240,237,232,0.45);
+  --rose: #d4697a;
+  --rose-dim: rgba(212,105,122,0.15);
+}
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html { scroll-behavior: smooth; }
+
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: 'DM Sans', sans-serif;
+  min-height: 100vh;
+  overflow-x: hidden;
+}
+
+#bg-canvas {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+}
+
+/* ══ ENVELOPE ══ */
+#envelope-screen {
+  position: fixed;
+  inset: 0;
+  z-index: 100;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  background: var(--bg);
+  transition: opacity 0.9s ease, visibility 0.9s ease;
+}
+#envelope-screen.hide { opacity: 0; visibility: hidden; }
+
+.env-wrap {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 24px;
+  animation: envAppear 1.2s cubic-bezier(0.16,1,0.3,1) both;
+}
+
+@keyframes envAppear {
+  from { opacity: 0; transform: translateY(40px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+.env-hint {
+  font-size: 0.65rem;
+  letter-spacing: 5px;
+  text-transform: uppercase;
+  color: var(--rose);
+  opacity: 0.8;
+}
+
+.envelope {
+  width: 240px; height: 168px;
+  position: relative;
+  cursor: pointer;
+  filter: drop-shadow(0 20px 60px rgba(212,105,122,0.3));
+  transition: transform 0.3s ease;
+}
+.envelope:hover { transform: scale(1.03) translateY(-4px); }
+
+.env-body {
+  position: absolute; inset: 0;
+  background: linear-gradient(160deg, #1e1428, #160e20);
+  border-radius: 6px 6px 12px 12px;
+  border: 1px solid rgba(212,105,122,0.2);
+}
+.env-flap {
+  position: absolute; top: 0; left: 0; right: 0; height: 0;
+  border-left: 120px solid transparent;
+  border-right: 120px solid transparent;
+  border-top: 84px solid #261530;
+  transform-origin: top center;
+  transition: transform 0.7s cubic-bezier(0.4,0,0.2,1);
+  z-index: 2;
+}
+.envelope.open .env-flap { transform: rotateX(180deg); }
+.env-bottom {
+  position: absolute; bottom: 0; left: 0; right: 0; height: 0;
+  border-left: 120px solid transparent;
+  border-right: 120px solid transparent;
+  border-bottom: 84px solid #1c1226;
+}
+.env-left {
+  position: absolute; top: 0; bottom: 0; left: 0; width: 0;
+  border-top: 84px solid transparent;
+  border-bottom: 84px solid transparent;
+  border-left: 86px solid #170e1e;
+}
+.env-right {
+  position: absolute; top: 0; bottom: 0; right: 0; width: 0;
+  border-top: 84px solid transparent;
+  border-bottom: 84px solid transparent;
+  border-right: 86px solid #170e1e;
+}
+.env-seal {
+  position: absolute; top: 50%; left: 50%;
+  transform: translate(-50%,-50%);
+  width: 46px; height: 46px;
+  background: linear-gradient(135deg, var(--rose), #e891a3);
+  border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 20px;
+  box-shadow: 0 0 24px rgba(212,105,122,0.6);
+  z-index: 3;
+  animation: pulseSeal 2s ease-in-out infinite;
+}
+@keyframes pulseSeal {
+  0%,100% { box-shadow: 0 0 24px rgba(212,105,122,0.5); }
+  50%      { box-shadow: 0 0 48px rgba(212,105,122,0.9); }
+}
+.env-note {
+  position: absolute;
+  bottom: -22px; left: 50%;
+  transform: translateX(-50%);
+  font-size: 0.55rem;
+  letter-spacing: 3px;
+  text-transform: uppercase;
+  color: var(--rose);
+  opacity: 0.5;
+  white-space: nowrap;
+}
+.open-label {
+  font-size: 0.75rem;
+  letter-spacing: 3px;
+  text-transform: uppercase;
+  color: var(--rose);
+  opacity: 0.75;
+  margin-top: 8px;
+}
+
+/* ══ CARD PAGE ══ */
+#card-page {
+  position: relative; z-index: 1;
+  min-height: 100vh;
+  padding: 60px 20px 80px;
+  display: flex; flex-direction: column; align-items: center;
+  opacity: 0;
+  transition: opacity 1s ease 0.4s;
+}
+#card-page.show { opacity: 1; }
+
+/* floating petals */
+.petal {
+  position: fixed;
+  font-size: 14px;
+  animation: petalDrift linear infinite;
+  opacity: 0;
+  z-index: 2;
+  pointer-events: none;
+}
+@keyframes petalDrift {
+  0%   { opacity: 0; transform: translateY(0) rotate(0deg) translateX(0); }
+  10%  { opacity: 0.7; }
+  50%  { transform: translateY(-55vh) rotate(180deg) translateX(30px); }
+  90%  { opacity: 0.4; }
+  100% { opacity: 0; transform: translateY(-110vh) rotate(360deg) translateX(-20px); }
+}
+
+/* date pill */
+.date-pill {
+  display: inline-flex; align-items: center; gap: 8px;
+  background: var(--rose-dim);
+  border: 1px solid rgba(212,105,122,0.25);
+  border-radius: 100px;
+  padding: 6px 20px;
+  font-size: 0.68rem; letter-spacing: 3px; text-transform: uppercase;
+  color: var(--rose);
+  margin-bottom: 32px;
+  animation: fadeDown 0.8s ease both;
+}
+@keyframes fadeDown {
+  from { opacity: 0; transform: translateY(-16px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+/* ── card ── */
+.card {
+  width: 100%; max-width: 520px;
+  background: var(--card-bg);
+  border: 1px solid rgba(212,105,122,0.1);
+  border-radius: 28px;
+  overflow: hidden;
+  box-shadow:
+    0 0 0 1px rgba(255,255,255,0.03),
+    0 40px 100px rgba(0,0,0,0.75),
+    inset 0 1px 0 rgba(255,255,255,0.05);
+  animation: cardRise 1.1s cubic-bezier(0.16,1,0.3,1) 0.3s both;
+}
+@keyframes cardRise {
+  from { opacity: 0; transform: translateY(70px) scale(0.95); }
+  to   { opacity: 1; transform: translateY(0) scale(1); }
+}
+.card::before {
+  content: '';
+  display: block; height: 2px;
+  background: linear-gradient(90deg, transparent, var(--rose), #e891a3, var(--rose), transparent);
+}
+
+/* hero */
+.card-hero {
+  position: relative;
+  background: linear-gradient(170deg, #1a1028 0%, #0e1420 100%);
+  padding: 50px 36px 38px;
+  display: flex; flex-direction: column; align-items: center; text-align: center;
+}
+.hero-glow {
+  position: absolute; top: -50px; left: 50%; transform: translateX(-50%);
+  width: 320px; height: 220px;
+  background: radial-gradient(ellipse, rgba(212,105,122,0.1) 0%, transparent 70%);
+  pointer-events: none;
+}
+
+/* photo */
+.photo-wrap {
+  position: relative; width: 136px; height: 136px; margin-bottom: 28px;
+}
+.photo-ring-outer {
+  position: absolute; inset: -4px; border-radius: 50%;
+  background: conic-gradient(
+    var(--rose) 0deg, #e891a3 90deg,
+    var(--gold-light) 180deg, var(--rose) 270deg, var(--rose) 360deg
+  );
+  animation: spinRing 9s linear infinite;
+}
+@keyframes spinRing { to { transform: rotate(360deg); } }
+.photo-ring-inner {
+  position: absolute; inset: 3px;
+  background: var(--card-bg); border-radius: 50%;
+}
+.photo-img {
+  position: absolute; inset: 7px;
+  border-radius: 50%; object-fit: cover;
+  width: calc(100% - 14px); height: calc(100% - 14px);
+}
+.photo-placeholder {
+  position: absolute; inset: 7px; border-radius: 50%;
+  background: rgba(212,105,122,0.08);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 38px;
+}
+.heart-badge {
+  position: absolute; bottom: 0; right: 0;
+  width: 38px; height: 38px;
+  background: linear-gradient(135deg, var(--rose), #e891a3);
+  border-radius: 50%; border: 3px solid var(--card-bg);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 15px; z-index: 2;
+  box-shadow: 0 4px 16px rgba(212,105,122,0.5);
+  animation: heartBeat 1.8s ease-in-out infinite;
+}
+@keyframes heartBeat {
+  0%,100% { transform: scale(1); }
+  30%     { transform: scale(1.15); }
+  60%     { transform: scale(0.97); }
+}
+
+.sub-label {
+  font-size: 0.6rem; letter-spacing: 5px; text-transform: uppercase;
+  color: var(--rose); opacity: 0.7; margin-bottom: 10px;
+}
+.sub-label-top {
+  font-size: 0.6rem; letter-spacing: 4px; text-transform: uppercase;
+  color: var(--text-muted); margin-bottom: 6px;
+}
+
+.recipient-name {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: clamp(2rem, 7vw, 2.9rem);
+  font-weight: 600; line-height: 1.05;
+  color: var(--text); letter-spacing: -0.5px;
+  text-shadow: 0 2px 30px rgba(212,105,122,0.2);
+  margin-bottom: 10px;
+}
+
+.age-line {
+  display: inline-flex; align-items: center; gap: 10px;
+  font-size: 0.75rem; letter-spacing: 2px; text-transform: uppercase;
+  color: var(--text-muted); margin-bottom: 4px;
+}
+.age-line strong { color: var(--rose); font-weight: 500; }
+
+/* body */
+.card-body { padding: 36px 38px 40px; border-top: 1px solid rgba(255,255,255,0.04); }
+
+.quote-mark {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 5.5rem; color: var(--rose); opacity: 0.13;
+  line-height: 0.5; margin-bottom: 10px; display: block;
+}
+
+.message-text {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 1.15rem; font-style: italic;
+  color: rgba(240,237,232,0.85);
+  line-height: 2.1;
+  white-space: pre-wrap;
+}
+
+.ornament-divider {
+  display: flex; align-items: center; gap: 14px; margin: 30px 0;
+}
+.ornament-line {
+  flex: 1; height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(212,105,122,0.3), transparent);
+}
+.ornament-icon { font-size: 13px; color: var(--rose); opacity: 0.5; }
+
+.from-section { text-align: center; }
+.from-label {
+  font-size: 0.6rem; letter-spacing: 4px; text-transform: uppercase;
+  color: var(--text-muted); margin-bottom: 8px;
+}
+.from-name {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 1.5rem; font-weight: 600;
+  color: var(--gold-light); letter-spacing: 1px;
+}
+
+/* footer */
+.card-footer {
+  padding: 18px 36px 26px;
+  border-top: 1px solid rgba(255,255,255,0.03);
+  display: flex; align-items: center; justify-content: space-between; gap: 12px;
+}
+.footer-dot {
+  width: 5px; height: 5px; border-radius: 50%;
+  background: var(--rose); opacity: 0.35;
+}
+.footer-text {
+  font-size: 0.62rem; letter-spacing: 3px; text-transform: uppercase;
+  color: var(--text-muted); text-align: center; flex: 1;
+}
+
+/* share */
+.share-hint {
+  margin-top: 28px; text-align: center;
+  animation: fadeDown 1s ease 1.2s both;
+}
+.share-hint p {
+  font-size: 0.67rem; letter-spacing: 2px; text-transform: uppercase;
+  color: var(--text-muted); margin-bottom: 10px;
+}
+.share-btn {
+  display: inline-flex; align-items: center; gap: 8px;
+  background: transparent;
+  border: 1px solid rgba(212,105,122,0.25);
+  border-radius: 100px; color: var(--rose); cursor: pointer;
+  font-family: 'DM Sans', sans-serif; font-size: 0.78rem;
+  letter-spacing: 1px; padding: 10px 26px;
+  transition: background 0.3s, border-color 0.3s;
+}
+.share-btn:hover { background: var(--rose-dim); border-color: rgba(212,105,122,0.5); }
+
+@media (max-width: 480px) {
+  .card-hero { padding: 38px 22px 28px; }
+  .card-body { padding: 28px 22px 32px; }
+  .card-footer { padding: 14px 22px 20px; }
+}
+</style>
+</head>
+<body>
+
+<canvas id="bg-canvas"></canvas>
+
+<!-- ENVELOPE -->
+<div id="envelope-screen">
+  <div class="env-wrap">
+    <p class="env-hint">🌹 Ada pesan cinta untukmu</p>
+    <div class="envelope" id="envelope" onclick="openEnvelope()">
+      <div class="env-body"></div>
+      <div class="env-flap"></div>
+      <div class="env-bottom"></div>
+      <div class="env-left"></div>
+      <div class="env-right"></div>
+      <div class="env-seal">💌</div>
+      <span class="env-note">dari seseorang yang mencintaimu</span>
+    </div>
+    <p class="open-label" style="margin-top:32px">Tap untuk membuka</p>
+  </div>
+</div>
+
+<!-- CARD PAGE -->
+<div id="card-page">
+
+  <div class="date-pill">🌹 <span id="today-date">—</span></div>
+
+  <div class="card">
+    <div class="card-hero">
+      <div class="hero-glow"></div>
+
+      <div class="photo-wrap">
+        <div class="photo-ring-outer"></div>
+        <div class="photo-ring-inner"></div>
+        <img id="card-photo" class="photo-img"
+             src="https://drive.google.com/uc?export=view&id=1_bWT6rSkwWDbo-UiqRn617-HXZ9oHWck"
+             alt="Fatika"
+             onerror="this.style.display='none';document.getElementById('photo-placeholder').style.display='flex'">
+        <div class="photo-placeholder" id="photo-placeholder" style="display:none">🌸</div>
+        <div class="heart-badge">💗</div>
+      </div>
+
+      <p class="sub-label-top">My Love</p>
+      <p class="sub-label">Selamat Ulang Tahun</p>
+      <h1 class="recipient-name">Fatika Queeny<br>Qornafal</h1>
+    </div>
+
+    <div class="card-body">
+      <span class="quote-mark">"</span>
+      <p class="message-text">Fatika, sayangku...
+
+Di hari yang istimewa ini, izinkan aku mengucapkan hal-hal yang selama ini tersimpan di dalam hati — bahwa kehadiranmu adalah salah satu anugerah terindah yang pernah Tuhan titipkan dalam hidupku.
+
+Setiap tawa yang kau berikan, setiap momen yang kita lalui bersama, semuanya terukir begitu dalam di hatiku. Kau bukan sekadar seseorang yang aku cintai, kau adalah rumahku — tempat aku merasa tenang, aman, dan selalu ingin kembali.
+
+Hari ini bukan hanya hari ulang tahunmu, ini adalah hari di mana dunia merayakan keberadaanmu. Dan aku, dengan seluruh hati yang kumiliki, bersyukur bahwa aku termasuk orang yang beruntung bisa mengenalmu, mencintaimu, dan berada di sisimu.
+
+Semoga di usiamu yang baru ini, semua impian yang kau tanam dengan penuh harap bisa mekar indah menjadi kenyataan. Semoga kau selalu diberi kesehatan, kebahagiaan, dan cinta yang tak pernah habis — termasuk cintaku yang akan selalu ada untukmu.
+
+Selamat ulang tahun, Fatika.
+Kamu dicintai lebih dari yang kamu tahu. 🌹</p>
+
+      <div class="ornament-divider">
+        <div class="ornament-line"></div>
+        <span class="ornament-icon">♥</span>
+        <div class="ornament-line"></div>
+      </div>
+
+      <div class="from-section">
+        <p class="from-label">Dengan sepenuh cinta dari</p>
+        <p class="from-name">Feqo Putra Ajiansya</p>
+      </div>
+    </div>
+
+    <div class="card-footer">
+      <div class="footer-dot"></div>
+      <p class="footer-text">Kamu dicintai lebih dari yang kamu tahu</p>
+      <div class="footer-dot"></div>
+    </div>
+  </div>
+
+  <div class="share-hint">
+    <p>Bagikan kartu ini</p>
+    <button class="share-btn" onclick="shareCard()">
+      <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+        <circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/>
+        <line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/>
+        <line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/>
+      </svg>
+      Salin Link Kartu
+    </button>
+  </div>
+</div>
+
+<script>
+/* ── canvas bg ── */
+(function(){
+  const c = document.getElementById('bg-canvas');
+  const ctx = c.getContext('2d');
+  let W, H;
+  const stars = [];
+  function resize(){ W = c.width = innerWidth; H = c.height = innerHeight; }
+  resize(); addEventListener('resize', resize);
+  for(let i=0;i<200;i++) stars.push({x:Math.random(),y:Math.random(),r:Math.random()*1.3+0.2,a:Math.random(),s:Math.random()*0.3+0.05});
+  let t=0;
+  function draw(){
+    ctx.clearRect(0,0,W,H);
+    // deep purple-rose aurora
+    const g = ctx.createRadialGradient(W*.5,H*.1,0,W*.5,H*.2,H*.8);
+    g.addColorStop(0,`rgba(30,12,40,${.3+.06*Math.sin(t*.25)})`);
+    g.addColorStop(.5,'rgba(12,8,20,.2)');
+    g.addColorStop(1,'transparent');
+    ctx.fillStyle=g; ctx.fillRect(0,0,W,H);
+    // rose glow
+    const g2 = ctx.createRadialGradient(W*.5,H*.5,0,W*.5,H*.5,H*.5);
+    g2.addColorStop(0,`rgba(212,105,122,${.015+.007*Math.sin(t*.4)})`);
+    g2.addColorStop(1,'transparent');
+    ctx.fillStyle=g2; ctx.fillRect(0,0,W,H);
+    stars.forEach(s=>{
+      s.a+=s.s*.01;
+      ctx.beginPath(); ctx.arc(s.x*W,s.y*H,s.r,0,Math.PI*2);
+      ctx.fillStyle=`rgba(255,240,248,${.25+.55*Math.abs(Math.sin(s.a))})`;
+      ctx.fill();
+    });
+    t++; requestAnimationFrame(draw);
+  }
+  draw();
+})();
+
+/* ── petals ── */
+const PETALS = ['🌸','🌹','💗','✨','🌷','💕','❤️','🌺'];
+function spawnPetal(){
+  const el = document.createElement('div');
+  el.className = 'petal';
+  el.textContent = PETALS[Math.floor(Math.random()*PETALS.length)];
+  el.style.left = Math.random()*100+'vw';
+  el.style.animationDuration = (7+Math.random()*9)+'s';
+  el.style.animationDelay = (Math.random()*5)+'s';
+  el.style.fontSize = (10+Math.random()*12)+'px';
+  document.body.appendChild(el);
+  setTimeout(()=>el.remove(), 20000);
+}
+setInterval(spawnPetal, 800);
+
+/* ── date ── */
+document.getElementById('today-date').textContent =
+  new Date().toLocaleDateString('id-ID',{day:'numeric',month:'long',year:'numeric'});
+
+/* ── envelope ── */
+function openEnvelope(){
+  document.getElementById('envelope').classList.add('open');
+  setTimeout(()=>{
+    document.getElementById('envelope-screen').classList.add('hide');
+    document.getElementById('card-page').classList.add('show');
+  }, 750);
+}
+
+/* ── share ── */
+function shareCard(){
+  const url = window.location.href;
+  if(navigator.share){ navigator.share({title:'Selamat Ulang Tahun Fatika 🌹', url}); }
+  else {
+    navigator.clipboard.writeText(url).then(()=>{
+      const btn = document.querySelector('.share-btn');
+      btn.textContent = '✓ Link tersalin!';
+      setTimeout(()=>btn.innerHTML=`<svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg> Salin Link Kartu`, 2500);
+    });
+  }
+}
+</script>
+</body>
+</html>
